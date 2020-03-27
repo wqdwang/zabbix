@@ -1,0 +1,85 @@
+version: "3"
+services: 
+  zabbix-server:
+    image: "zabbix/zabbix-server-mysql:centos-4.0.4"
+    container_name: "zabbix-server"
+    network_mode: "host"
+    restart: "always"
+    environment: 
+      - "DB_SERVER_HOST=127.0.0.1"
+      - "MYSQL_DATABASE: zabbix"
+      - "MYSQL_USER=root"
+      - "MYSQL_PASSWORD=Dong.0326"
+      - "MYSQL_ROOT_PASSWORD: Dong.0326"
+      #- "DB_SERVER_PORT="
+      #- "MYSQL_DATABASE="
+    volumes: 
+      - "zabbix-server-data:/var/lib/zabbix/"
+      - "zabbix-server-scripts:/usr/lib/zabbix/"
+    depends_on: 
+      - "zabbix-db"
+    ports: 
+      - "10051:10051"
+
+
+  zabbix-web:
+    image: "zabbix/zabbix-web-nginx-mysql:centos-4.0.4"
+    container_name: "zabbix-web"
+    restart: "always"
+    environment: 
+      - "DB_SERVER_HOST=zabbix-db"
+      - "MYSQL_DATBASE=zabbix"
+      - "MYSQL_USER=root"
+      - "MYSQL_PASSWORD=Dong.0326"
+      - "ZBX_SERVER_HOST=49.232.155.55"
+      - "PHP_TZ=Asia/Shanghai	"
+      #- "ZBX_SERVER_PORT="
+      #- "DB_SERVER_PORT="
+      #- "MYSQL_DATABASE="
+      #- "ZBX_SERVER_NAME="
+    depends_on: 
+      - "zabbix-server"
+      - "zabbix-db"
+    ports: 
+      - "80:80"
+    #extra_hosts:
+    #  - "mysql.bboysoul.com:10.10.10.200"
+    
+  zabbix-db:
+    image: "mariadb:10.2.22"
+    container_name: "zabbix-db"
+    restart: "always"
+    environment:
+      - "MYSQL_ROOT_PASSWORD=Dong.0326"
+      - "MYSQL_DATABASE=zabbix"
+      - "MYSQL_USER=root" 
+      - "MYSQL_PASSWORD=Dong.0326"
+      #- "MYSQL_USER="
+      #- "MYSQL_PASSWORD="
+      #- "MYSQL_ALLOW_EMPTY_PASSWORD="
+      #- "MYSQL_RANDOM_ROOT_PASSWORD="
+    ports: 
+      - "3306:3306"
+    volumes: 
+      - "/root/zabbix/data:/var/lib/mysql"
+      - "/root/zabbix/data:/etc/mysql"
+      - "/root/zabbix/data:/var/log/mysql"
+  zabbix-agent:
+    image: "zabbix/zabbix-agent:centos-4.0.4"
+    container_name: "zabbix-agent"
+    network_mode: "host"
+    restart: "always"
+    ports: 
+      - "10050:10050"
+    volumes:
+      - "zabbix-agent-conf:/etc/zabbix/" 
+    environment: 
+      - "ZBX_HOSTNAME=zabbix server"
+      - "ZBX_SERVER_HOST=49.232.155.55"
+
+
+volumes: 
+  zabbix-server-data:
+  zabbix-db-data:
+  zabbix-server-scripts:
+  zabbix-agent-conf:
